@@ -292,9 +292,8 @@ class RepoBox(Gtk.Box):
       msg = doc.get_text(doc.get_start_iter(), doc.get_end_iter(), False)
       msg = "\n".join([line.strip() for line in msg.split('\n') if
         len(line.strip()) > 0 and not line.strip().startswith("#")])
-      print msg
-      print repo.index.commit(msg)
-      print repo.head.commit
+      if len(msg) > 0:  # Ensure commit message is not empty.
+        repo.index.commit(msg)
       if len(handler_id) > 0:
         self.window.disconnect(handler_id[0])
       self.commit_lock.release()

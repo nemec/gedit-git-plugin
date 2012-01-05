@@ -48,6 +48,10 @@ Features
   of the repository. gitignore file is created if it does not exist.
 * Commit staged changes.
 
+<center>
+<img src="https://github.com/nemec/gedit-git-plugin/raw/master/screenshot.png"\>
+</center>
+
 
 Planned Features
 ================

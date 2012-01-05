@@ -238,9 +238,11 @@ class RepoBox(Gtk.Box):
     then update the view.
 
     """
-    self.current_repo.index.add(
-      [row[2] for row in self.unstaged_view.get_model() if
-        stage_all or row[0]])
+    for row in self.unstaged_view.get_model():
+      if row[1] == 'D' and (stage_all or row[0]):
+        self.current_repo.index.remove([row[2]])
+      elif stage_all or row[0]:
+         self.current_repo.index.add([row[2]])
     self.update(repo=self.current_repo)
 
   def track_files(self, btn):
@@ -270,11 +272,27 @@ class RepoBox(Gtk.Box):
     self.update(repo=self.current_repo)
 
   def commit_files(self, btn):
-    """Commit all changes to the branch specified in HEAD."""
-    commit_msg = Gio.file_new_for_path(os.path.join(
-      self.current_repo.git_dir, "COMMIT_EDITMSG"))
+    """
+    Commit all changes to the branch specified in HEAD.
+    Open a new Gedit tab to fill with the commit message, then
+    when that tab is closed use its contents to populate the
+    commit message.
+
+    """
+    commit_file = Gio.file_new_for_path(os.path.join(
+      self.current_repo.git_dir, "COMMIT_EDITMSG_GEDIT"))
+    stream = commit_file.replace_readwrite(None, False,
+      Gio.FileCreateFlags.REPLACE_DESTINATION, None)
+    if stream:
+      ostream = stream.get_output_stream()
+      ostream.write(
+        "\n\n# Lines that begin with a # and empty leading/trailing "
+        "lines will not be\n# included. Leave an empty commit message "
+        "to abort the commit.\n#\n{0}".format(
+        self.current_repo.git.status()), None)
+    stream.close(None)
     commit_tab = self.window.create_tab_from_location(
-      commit_msg, None, 0, 0, True, True)
+      commit_file, None, 0, 0, True, True)
     # Use a lock to ensure the file isn't closed and committed before the
     # handler_id is created. Seems to be the only easy solution to sending
     # the signal handler_id to the handler itself.
@@ -286,12 +304,18 @@ class RepoBox(Gtk.Box):
     self.commit_lock.release()
 
   def commit_cb(self, window, tab, commit_tab, handler_id, repo):
+    """
+    Check that the tab closed is the tab we're committing with,
+    then retrieve the tab's contents, strip it of leading/trailing
+    empty lines and lines that start with #, then commit.
+
+    """
     if tab == commit_tab:
       self.commit_lock.acquire()
       doc = tab.get_document()
       msg = doc.get_text(doc.get_start_iter(), doc.get_end_iter(), False)
-      msg = "\n".join([line.strip() for line in msg.split('\n') if
-        len(line.strip()) > 0 and not line.strip().startswith("#")])
+      msg = "\n".join([line for line in msg.split('\n') if
+        not line.strip().startswith("#")]).strip()
       if len(msg) > 0:  # Ensure commit message is not empty.
         repo.index.commit(msg)
       if len(handler_id) > 0:

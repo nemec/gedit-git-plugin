@@ -124,9 +124,9 @@ class RepoBox(Gtk.Box):
     self.refresh.connect("clicked",
       lambda x: self.update(repo=self.current_repo))
     dobuttons.pack_start(self.refresh, False, False, 1)
-    commit = Gtk.Button("Commit")
-    commit.connect("clicked", self.commit_files)
-    dobuttons.pack_start(commit, False, False, 1)
+    self.commit = Gtk.Button("Commit")
+    self.commit.connect("clicked", self.commit_files)
+    dobuttons.pack_start(self.commit, False, False, 1)
     self.pack_start(dobuttons, False, False, 1)
     
     # Section for Unstaged Files
@@ -213,7 +213,7 @@ class RepoBox(Gtk.Box):
       # Set Unstaged Files
       unstaged_list = Gtk.ListStore(bool, str, str)
       if repo.is_dirty():
-        self.refresh.set_sensitive(True)
+        self.commit.set_sensitive(True)
         diffs = repo.index.diff(None)
         # Get stats for each diff in Added, Deleted, Modified, Renamed
         for diff in diffs.iter_change_type('A'):
@@ -226,7 +226,7 @@ class RepoBox(Gtk.Box):
           unstaged_list.append((False, 'R', "{0} -> {1}".format(
             diff.a_blob.name, diff.b_blob_name)))
       else:
-        self.refresh.set_sensitive(False)
+        self.commit.set_sensitive(False)
       self.unstaged_view.set_model(unstaged_list)
 
       self.current_repo = repo
@@ -280,12 +280,12 @@ class RepoBox(Gtk.Box):
     # the signal handler_id to the handler itself.
     handler_id = []
     self.commit_lock.acquire()
-    hid = self.window.connect("tab-removed", self.commit,
+    hid = self.window.connect("tab-removed", self.commit_cb,
       commit_tab, handler_id, self.current_repo)
     handler_id.append(hid)
     self.commit_lock.release()
 
-  def commit(self, window, tab, commit_tab, handler_id, repo):
+  def commit_cb(self, window, tab, commit_tab, handler_id, repo):
     if tab == commit_tab:
       self.commit_lock.acquire()
       doc = tab.get_document()

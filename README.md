@@ -1,4 +1,6 @@
-=======
+**Note:** this repository is not being maintained and does not work in the latest Gedit. Feel free to try [dvhart's fork](https://github.com/dvhart/gedit-git-plugin) or fork it yourself.
+
+
 GitEdit
 =======
 
@@ -11,7 +13,7 @@ more advanced Git user.
 
 
 Requirements
-============
+------------
 
 * GitPython-3.X+ (correct version not presently in the Ubuntu repositories,
     must install separately
@@ -20,21 +22,21 @@ Requirements
 
 
 Install
-=======
+-------
 
 Copy the files gitedit.py and gitedit.plugin to
 ~/.local/share/gedit/plugins (or a subdirectory thereof) and restart Gedit.
 
 
 Usage
-=====
+-----
 
 Select the plugin in Edit->Preferences->Plugins and switch to the Git tab
 on the bottom panel.
 
 
 Features
-========
+--------
 
 * Click the `Refresh` button to refresh the bottom page.
 * Upon switching to a new tab, repository information for the current
@@ -54,14 +56,14 @@ Features
 
 
 Planned Features
-================
+----------------
 
 * Push changes to a branch to a specified remote repository.
 * Pull changes to a branch from a specified remote repository.
 * Manage remote repositories.
 
 Known Issues
-============
+------------
 
 * Plugin does not display repository data when first enabled
   (Workaround: switch tabs, then switch back)
